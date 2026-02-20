@@ -1,3 +1,17 @@
 spring:
   application:
     name: fluxtrade-pipeline
+  profiles:
+    active: local
+  jackson:
+    visibility:
+      field: any
+      getter: none
+      is-getter: none
+    deserialization:
+      fail-on-unknown-properties: false # vital for API stability if Finnhub adds new fields
+
+finnhub:
+  api:
+    key: ${FINNHUB_API_KEY}
+
