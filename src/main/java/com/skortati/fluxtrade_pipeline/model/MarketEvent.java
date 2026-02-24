@@ -11,15 +11,21 @@ public record MarketEvent(
         double price,
         Instant timestamp,
         double volume,
+        String headline,
         double sentimentScore, // to be filled by the SentimentPlugin
+        double volatilityScore,
         boolean isAlertTriggered // To be set by the RiskConfidencePlugin
 ) {
     public MarketEvent withSentiment(double score) {
-        return new MarketEvent(symbol, price, timestamp, volume, sentimentScore, isAlertTriggered);
+        return new MarketEvent(symbol, price, timestamp, volume, headline, sentimentScore, volatilityScore, isAlertTriggered);
     }
 
     public MarketEvent withAlert(boolean alert) {
-        return new MarketEvent(symbol, price, timestamp, volume, sentimentScore, alert);
+        return new MarketEvent(symbol, price, timestamp, volume, headline, sentimentScore, volatilityScore, alert);
+    }
+
+    public MarketEvent withVolatility(double volatility) {
+        return new MarketEvent(symbol, price, timestamp, volume, headline, sentimentScore, volatility, isAlertTriggered);
     }
 
     // Canonical constructor for easy transformation from TradeTick
@@ -29,6 +35,8 @@ public record MarketEvent(
                 tick.price(),
                 Instant.ofEpochMilli((tick.timestamp())),
                 tick.volume(),
+                "",
+                0.0,
                 0.0,
                 false
         );

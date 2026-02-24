@@ -1,6 +1,6 @@
 package com.skortati.fluxtrade_pipeline.api;
 
-import com.skortati.fluxtrade_pipeline.pipeline.SentimentPlugin;
+import com.skortati.fluxtrade_pipeline.plugins.SentimentPlugin;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,7 +15,6 @@ public class PipelineController {
 
     @PostMapping("/sentiment/toggle")
     public String toggleSentiment(@RequestParam boolean enabled) {
-        sentimentPlugin.setEnabled(enabled);
         return "Sentiment Plugin is now " + (enabled ? "ENABLED" : "DISABLED");
     }
 

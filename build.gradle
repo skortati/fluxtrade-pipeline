@@ -26,6 +26,10 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'edu.stanford.nlp:stanford-corenlp:4.5.10'
+	implementation "edu.stanford.nlp:stanford-corenlp:4.5.10:models"
+	implementation "edu.stanford.nlp:stanford-corenlp:4.5.10:models-english"
+	implementation "edu.stanford.nlp:stanford-corenlp:4.5.10:models-english-kbp"
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	annotationProcessor 'org.projectlombok:lombok'
