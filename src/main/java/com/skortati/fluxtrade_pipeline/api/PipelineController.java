@@ -1,21 +1,20 @@
 package com.skortati.fluxtrade_pipeline.api;
 
-import com.skortati.fluxtrade_pipeline.plugins.SentimentPlugin;
+import com.skortati.fluxtrade_pipeline.core.PipelineEngine;
+import com.skortati.fluxtrade_pipeline.model.MarketEvent;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api/pipeline")
 @RequiredArgsConstructor
 public class PipelineController {
-    private final SentimentPlugin sentimentPlugin;
+    private final PipelineEngine pipelineEngine;
 
-    @PostMapping("/sentiment/toggle")
-    public String toggleSentiment(@RequestParam boolean enabled) {
-        return "Sentiment Plugin is now " + (enabled ? "ENABLED" : "DISABLED");
+    @PostMapping("/process")
+    public Mono<MarketEvent> processEvent(@RequestBody MarketEvent request) {
+        return pipelineEngine.runPipeline(request);
     }
 
 }

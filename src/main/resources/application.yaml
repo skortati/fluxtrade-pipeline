@@ -15,3 +15,7 @@ finnhub:
   api:
     key: ${FINNHUB_API_KEY}
 
+logging:
+  level:
+    com.skortati.fluxtrade_pipeline: DEBUG
+

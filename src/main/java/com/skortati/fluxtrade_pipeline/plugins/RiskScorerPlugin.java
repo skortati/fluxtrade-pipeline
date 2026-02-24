@@ -19,7 +19,7 @@ public class RiskScorerPlugin implements TradePlugin {
             // the logic gate:
             // high risk = high volatility + bad sentiment
             boolean shouldTrigger = (event.sentimentScore() <= SENTIMENT_PANIC_THRESHOLD)
-                    && (event.volatilityScore() <= VOLATILITY_ALARM_THRESHOLD);
+                    && (event.volatilityScore() >= VOLATILITY_ALARM_THRESHOLD);
 
             if (shouldTrigger) {
                 System.out.println("🚨 [ALERT] High Risk Detected for " + event.symbol());

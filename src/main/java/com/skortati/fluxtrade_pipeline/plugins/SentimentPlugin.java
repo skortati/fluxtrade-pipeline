@@ -37,15 +37,21 @@ public class SentimentPlugin implements TradePlugin {
             pipeline.annotate(doc);
 
             double avgScore = doc.sentences().stream()
-                    .mapToDouble(s -> switch (s.sentiment()) {
-                        case "Very Positive" -> 1.0;
-                        case "Positive" -> 0.5;
-                        case "Negative" -> -0.5;
-                        case "Very Negative" -> -1.0;
-                        default -> 0.0;
+                    .mapToDouble(s -> {
+                        String sentiment = s.sentiment();
+                        return switch (sentiment) {
+                            case "Very Positive" -> 1.0;
+                            case "Positive" -> 0.5;
+                            case "Negative" -> -0.5;
+                            case "Very Negative" -> -1.0;
+                            default -> 0.0;
+                        };
                     })
                     .average()
                     .orElse(0.0);
+
+            System.out.println("NLP Result [" + event.symbol() + "]: " + avgScore + " for headline: " + event.headline());
+
             return event.withSentiment(avgScore);
         }).subscribeOn(Schedulers.boundedElastic());
     }

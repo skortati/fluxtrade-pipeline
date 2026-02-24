@@ -28,6 +28,10 @@ public record MarketEvent(
         return new MarketEvent(symbol, price, timestamp, volume, headline, sentimentScore, volatility, isAlertTriggered);
     }
 
+    public MarketEvent withHeadline(String headline) {
+        return new MarketEvent(symbol, price, timestamp, volume, headline, sentimentScore, volatilityScore, isAlertTriggered);
+    }
+
     // Canonical constructor for easy transformation from TradeTick
     public static MarketEvent fromTick(TradeTick tick) {
         return new MarketEvent(
