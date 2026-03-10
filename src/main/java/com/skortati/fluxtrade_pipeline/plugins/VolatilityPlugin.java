@@ -10,27 +10,27 @@ import reactor.core.scheduler.Schedulers;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 @Component
 @Order(2)
 public class VolatilityPlugin implements TradePlugin {
-    // ConcurrentLinkedDeque is non-blocking and perfect for a "Sliding Window"
-    private final Deque<Double> priceHistory = new ConcurrentLinkedDeque<>();
+    // Key: Symbol (NVDA, BTC), Value: The sliding window for that symbol
+    private final ConcurrentHashMap<String, Deque<Double>> priceHistories = new ConcurrentHashMap<>();
     private static final int WINDOW_SIZE = 20; // last 20 ticks
 
     @Override
     public Mono<MarketEvent> process(MarketEvent event) {
         return Mono.fromCallable(() -> {
-            priceHistory.addLast(event.price());
-
-            // Non-blocking window management
-            while (priceHistory.size() > WINDOW_SIZE) {
-                priceHistory.pollFirst();
-            }
-
-            double volatility = calculateStandardDeviation(new ArrayList<>(priceHistory));
-            return event.withVolatility(volatility);
+            // ConcurrentLinkedDeque is non-blocking and perfect for a "Sliding Window"
+           Deque<Double> history = priceHistories.computeIfAbsent(event.symbol(), s -> new ConcurrentLinkedDeque<>());
+           history.add(event.price());
+           if (history.size() > WINDOW_SIZE) {
+               history.pollFirst();
+           }
+           double volatility = calculateStandardDeviation(new ArrayList<>(history));
+           return event.withVolatility(volatility);
         }).subscribeOn(Schedulers.parallel()); // Standard deviation is CPU-bound
     }
 
