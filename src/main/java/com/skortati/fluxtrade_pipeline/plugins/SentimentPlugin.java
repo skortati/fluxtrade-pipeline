@@ -3,8 +3,8 @@ package com.skortati.fluxtrade_pipeline.plugins;
 import com.skortati.fluxtrade_pipeline.core.TradePlugin;
 import com.skortati.fluxtrade_pipeline.model.MarketEvent;
 import edu.stanford.nlp.pipeline.CoreDocument;
-import lombok.Getter;
-import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -17,6 +17,7 @@ import java.util.Properties;
 @Component
 @Order(1)
 public class SentimentPlugin implements TradePlugin {
+    private final static Logger LOGGER = LoggerFactory.getLogger(SentimentPlugin.class);
     private final StanfordCoreNLP pipeline;
 
     public SentimentPlugin() {
@@ -42,9 +43,13 @@ public class SentimentPlugin implements TradePlugin {
                         return switch (sentiment) {
                             case "Very Positive" -> 1.0;
                             case "Positive" -> 0.5;
+                            case "Neutral" -> 0.0;
                             case "Negative" -> -0.5;
                             case "Very Negative" -> -1.0;
-                            default -> 0.0;
+                            default -> {
+                                LOGGER.warn("Unrecognized sentiment label from CoreNLP: {}", sentiment);
+                                yield 0.0;
+                            }
                         };
                     })
                     .average()

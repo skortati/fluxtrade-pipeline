@@ -10,8 +10,12 @@ public class MockNewsService {
     private final Random random = new Random();
 
     private final Map<String, String> priceHeadLines = Map.of(
-            "NVDA", "NVIDIA quarterly earnings miss expectations; chip demand slowing down.",
-            "BINANCE:BTCUSDT", "Major crypto exchange announces halt on all Bitcoin withdrawals."
+//            "NVDA", "NVIDIA quarterly earnings miss expectations; chip demand slowing down.",
+//            "BINANCE:BTCUSDT", "Major crypto exchange announces halt on all Bitcoin withdrawals."
+
+            // Added strongly emotive words: "disastrous", "catastrophic", "emergency"
+            "NVDA", "NVIDIA reports a disastrous revenue collapse; investors are terrified by the massive loss.",
+            "BINANCE:BTCUSDT", "Bitcoin price crashes in a catastrophic sell-off after an emergency regulatory ban."
     );
 
     public String getHeadlineFor(String symbol) {

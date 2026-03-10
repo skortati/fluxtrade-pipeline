@@ -18,14 +18,14 @@ public class PipelineEngine {
     private final List<TradePlugin> plugins;
 
     public Mono<MarketEvent> runPipeline(MarketEvent initialEvent) {
-        return Flux.fromIterable(plugins)
-                .reduce(Mono.just(initialEvent), (eventMono, plugin) ->
-                        eventMono.flatMap(event -> {
-                            LOGGER.debug("Applying plugin: {} to {}",
-                                    plugin.getClass().getSimpleName(), event.symbol());
-                            return plugin.process(event);
-                        })
-                )
-                .flatMap(mono -> mono); // Flatten the resulting Mono<Mono<MarketEvent>>
+        Mono<MarketEvent> pipeline = Mono.just(initialEvent);
+
+        for (TradePlugin plugin : plugins) {
+            pipeline = pipeline.flatMap(plugin::process);
+        }
+
+        return pipeline
+                .doOnError(e -> LOGGER.error("Pipeline failed", e))
+                .doOnNext(event -> LOGGER.info("Pipeline complete for {}", event.symbol()));
     }
 }

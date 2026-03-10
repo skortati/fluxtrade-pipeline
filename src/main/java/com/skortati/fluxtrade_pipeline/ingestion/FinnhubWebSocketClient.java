@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import java.net.URI;
@@ -44,13 +43,13 @@ public class FinnhubWebSocketClient {
                     return session.send(subscriptionMessages)
                             .thenMany(session.receive()
                                     .map(WebSocketMessage::getPayloadAsText)
-                                    .flatMap(dataService::parse) // Send raw JSON to your parser
+                                    .flatMap(dataService::parse)
 
                                     // [TESTING BLOCK]
-                                            .map(event -> {
-                                                String headline = mockNewsService.getHeadlineFor(event.symbol());
-                                                return event.withHeadline(headline);
-                                            })
+                                    .map(event -> {
+                                        String headline = mockNewsService.getHeadlineFor(event.symbol());
+                                        return event.withHeadline(headline);
+                                    })
 
                                     // backpressure: drop trades if the pipeline is overwhelmed
                                     .onBackpressureDrop(dropped -> LOGGER.warn("Backpressure: Dropping trade for {}", dropped.symbol()))
