@@ -5,10 +5,14 @@ import com.skortati.fluxtrade_pipeline.model.MarketEvent;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import tools.jackson.databind.ObjectMapper;
+
+import java.io.InputStream;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +34,22 @@ public class FinnhubDataService {
                 .map(MarketEvent::fromTick)
                 .doOnError(e -> LOGGER.error("Error parsing market event: {}", e.getMessage()))
                 .onErrorResume(e -> Flux.empty()); // ensure one bad packet doesn't kill the stream
+    }
+
+    public Mono<MarketEvent> parseFromBuffer(DataBuffer buffer) {
+        return Mono.fromCallable(() -> {
+            // using try-with-resources to ensure the buffer is released back to the pool
+            try (InputStream is = buffer.asInputStream(false)) {
+                FinnhubResponse response = objectMapper.readValue(is, FinnhubResponse.class);
+
+                if (response == null || response.data() == null || response.data().isEmpty()) {
+                    return null;
+                }
+
+                // take the first tick in the list for our pipeline
+                return MarketEvent.fromTick(response.data().getFirst());
+            }
+        }).subscribeOn(Schedulers.parallel()); // Keep the IO thread free!
     }
 
 }
