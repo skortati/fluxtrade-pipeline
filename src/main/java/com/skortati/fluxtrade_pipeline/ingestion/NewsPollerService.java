@@ -1,10 +1,12 @@
 package com.skortati.fluxtrade_pipeline.ingestion;
 
+import com.skortati.fluxtrade_pipeline.core.NewsCache;
 import com.skortati.fluxtrade_pipeline.model.MarketEvent;
 import com.skortati.fluxtrade_pipeline.model.NewsRecord;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -21,16 +23,26 @@ public class NewsPollerService {
     private static final Logger LOGGER = LoggerFactory.getLogger(NewsPollerService.class);
     private final WebClient webClient;
     private final Sinks.Many<MarketEvent> pipelineSink;
-    private final String apiKey = "...";
+    private final NewsCache newsCache;
+
+    @Value("${finnhub.api.key}")
+    private String apiKey;
 
     private final List<String> trackedSymbols = List.of("NVDA", "BTC", "ETH", "AAPL");
 
     @Scheduled(fixedRate = 60000) // every minute
     public void runPollingCycle() {
+        LOGGER.info("Starting news polling cycle");
+
         Flux.fromIterable(trackedSymbols)
                 .flatMap(this::fetchNewsForSymbol)
+                .doOnNext(event -> {
+                    // update the global cache so web socket ticks can see this headline
+                    newsCache.update(event.symbol(), event.headline());
+                    LOGGER.info("Cache updated: {} -> {}", event.symbol(), event.headline());
+                })
                 .subscribe(
-                        pipelineSink::tryEmitNext,
+                        pipelineSink::tryEmitNext, // Optional: trigger an immediate pipeline run for the news event
                         error -> LOGGER.error("Polling Error: {}", error.getMessage())
                 );
     }
