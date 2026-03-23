@@ -2,30 +2,18 @@ package com.skortati.fluxtrade_pipeline.plugins;
 
 import com.skortati.fluxtrade_pipeline.core.TradePlugin;
 import com.skortati.fluxtrade_pipeline.model.MarketEvent;
-import edu.stanford.nlp.pipeline.CoreDocument;
+import com.vader.sentiment.analyzer.SentimentAnalyzer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
-
-import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import reactor.core.scheduler.Schedulers;
-
-import java.util.Properties;
 
 @Component
 @Order(1)
 public class SentimentPlugin implements TradePlugin {
     private final static Logger LOGGER = LoggerFactory.getLogger(SentimentPlugin.class);
-    private final StanfordCoreNLP pipeline;
-
-    public SentimentPlugin() {
-        Properties props = new Properties();
-        // We only need the bare minimum for sentiment to keep it "fast"
-        props.setProperty("annotators", "tokenize, ssplit, pos, parse, sentiment");
-        this.pipeline = new StanfordCoreNLP(props);
-    }
 
     @Override
     public Mono<MarketEvent> process(MarketEvent event) {
@@ -34,30 +22,17 @@ public class SentimentPlugin implements TradePlugin {
         }
 
         return Mono.fromCallable(() -> {
-            CoreDocument doc = new CoreDocument(event.headline());
-            pipeline.annotate(doc);
+            try {
+                // VADER: Lexicon-based sentiment analysis (-1.0 to 1.0)
+                var polarities = SentimentAnalyzer.getScoresFor(event.headline());
+                float compoundScore = polarities.getCompoundPolarity();
 
-            double avgScore = doc.sentences().stream()
-                    .mapToDouble(s -> {
-                        String sentiment = s.sentiment();
-                        return switch (sentiment) {
-                            case "Very Positive" -> 1.0;
-                            case "Positive" -> 0.5;
-                            case "Neutral" -> 0.0;
-                            case "Negative" -> -0.5;
-                            case "Very Negative" -> -1.0;
-                            default -> {
-                                LOGGER.warn("Unrecognized sentiment label from CoreNLP: {}", sentiment);
-                                yield 0.0;
-                            }
-                        };
-                    })
-                    .average()
-                    .orElse(0.0);
-
-            System.out.println("NLP Result [" + event.symbol() + "]: " + avgScore + " for headline: " + event.headline());
-
-            return event.withSentiment(avgScore);
-        }).subscribeOn(Schedulers.boundedElastic());
+                return event.withSentiment(compoundScore);
+            } catch (Exception e) {
+                LOGGER.error("[SentimentPlugin] Error parsing headline: {}", e.getMessage());
+                return event;
+            }
+        }).subscribeOn(Schedulers.parallel()); // Lexicon-based is light enough for parallel()
     }
+
 }
