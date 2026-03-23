@@ -27,7 +27,20 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-	implementation 'com.github.apanimesh061:VaderSentimentJava:1.1.1'
+	// DJL Core and Predictive API
+	implementation platform("ai.djl:bom:0.36.0")
+	implementation 'ai.djl:api'
+
+	// PyTorch Engine
+	implementation 'ai.djl.pytorch:pytorch-engine'
+
+	// add the JNI library explicitly to avoid the 404 download
+	// This tells DJL exactly which bridge to use for Mac Silicon
+	implementation "ai.djl.pytorch:pytorch-jni"
+
+	// Pre-trained model zoo (HuggingFace integration)
+	implementation "ai.djl.huggingface:tokenizers"
+
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	annotationProcessor 'org.projectlombok:lombok'
