@@ -17,7 +17,7 @@ public record MarketEvent(
         boolean isAlertTriggered // To be set by the RiskConfidencePlugin
 ) {
     public MarketEvent withSentiment(double score) {
-        return new MarketEvent(symbol, price, timestamp, volume, headline, sentimentScore, volatilityScore, isAlertTriggered);
+        return new MarketEvent(symbol, price, timestamp, volume, headline, score, volatilityScore, isAlertTriggered);
     }
 
     public MarketEvent withAlert(boolean alert) {
