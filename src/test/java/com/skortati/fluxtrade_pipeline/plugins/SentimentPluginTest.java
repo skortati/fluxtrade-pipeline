@@ -91,8 +91,20 @@ public class SentimentPluginTest {
                 .verifyComplete();
     }
 
+    @Test
+    void returnNeutralScoreForFactualReporting2() {
+        MarketEvent event = createEventWithHeadline("AAPL", "Apple Inc. scheduled its annual shareholder meeting.");
+
+        StepVerifier.create(plugin.process(event))
+                .assertNext(result -> {
+                    // With scaling, a 55% positive probability becomes 0.1
+                    assertThat(Math.abs(result.sentimentScore())).isLessThan(0.7);
+                })
+                .verifyComplete();
+    }
+
     private MarketEvent createEventWithHeadline(String symbol, String headline) {
-        return new MarketEvent(symbol, 100.0, Instant.now(), 0.0, headline, 0.0, 0.0, false);
+        return new MarketEvent(symbol, 100.0, Instant.now(), 0.0, headline, 0.0, 0.0, false, null);
     }
 
 }

@@ -64,7 +64,8 @@ public class VolatilityPluginTest {
                 "",
                 0.0,
                 0.0,
-                false
+                false,
+                null
         );
     }
 }

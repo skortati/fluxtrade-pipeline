@@ -87,7 +87,7 @@ public class NewsPollerService {
     }
 
     private MarketEvent mapToEvent(NewsRecord record, String symbol) {
-        return new MarketEvent(symbol, 0.0, Instant.now(), 0.0, record.headline(), 0.0, 0.0, false);
+        return new MarketEvent(symbol, 0.0, Instant.now(), 0.0, record.headline(), 0.0, 0.0, false, null);
     }
 }
 

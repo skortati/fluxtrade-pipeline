@@ -14,22 +14,23 @@ public record MarketEvent(
         String headline,
         double sentimentScore, // to be filled by the SentimentPlugin
         double volatilityScore,
-        boolean isAlertTriggered // To be set by the RiskConfidencePlugin
+        boolean isAlertTriggered, // To be set by the RiskConfidencePlugin
+        AlertType alertType
 ) {
     public MarketEvent withSentiment(double score) {
-        return new MarketEvent(symbol, price, timestamp, volume, headline, score, volatilityScore, isAlertTriggered);
+        return new MarketEvent(symbol, price, timestamp, volume, headline, score, volatilityScore, isAlertTriggered, alertType);
     }
 
-    public MarketEvent withAlert(boolean alert) {
-        return new MarketEvent(symbol, price, timestamp, volume, headline, sentimentScore, volatilityScore, alert);
+    public MarketEvent withAlert(boolean alert, AlertType type) {
+        return new MarketEvent(symbol, price, timestamp, volume, headline, sentimentScore, volatilityScore, alert, type);
     }
 
     public MarketEvent withVolatility(double volatility) {
-        return new MarketEvent(symbol, price, timestamp, volume, headline, sentimentScore, volatility, isAlertTriggered);
+        return new MarketEvent(symbol, price, timestamp, volume, headline, sentimentScore, volatility, isAlertTriggered, alertType);
     }
 
     public MarketEvent withHeadline(String headline) {
-        return new MarketEvent(symbol, price, timestamp, volume, headline, sentimentScore, volatilityScore, isAlertTriggered);
+        return new MarketEvent(symbol, price, timestamp, volume, headline, sentimentScore, volatilityScore, isAlertTriggered, alertType);
     }
 
     // Canonical constructor for easy transformation from TradeTick
@@ -42,7 +43,8 @@ public record MarketEvent(
                 "",
                 0.0,
                 0.0,
-                false
+                false,
+                AlertType.NONE
         );
     }
 

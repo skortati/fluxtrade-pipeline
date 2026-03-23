@@ -59,18 +59,23 @@ public class SentimentPlugin implements TradePlugin {
                 String label = best.getClassName().toUpperCase();
                 double probability = best.getProbability();
 
+                // Scale the score: (prob - 0.5) * 2
+                // This turns [0.5 to 1.0] into [0.0 to 1.0]
+                double scaledScore = (probability - 0.5) * 2;
+
                 // Handle both "POSITIVE/NEGATIVE" and "LABEL_1/LABEL_0" formats
                 double finalScore;
                 if (label.contains("POSITIVE")) {
-                    finalScore = probability; // 0.5 to 1.0
+                    finalScore = scaledScore;
                 } else {
-                    finalScore = -probability; // -0.5 to -1.0
+                    finalScore = -scaledScore;
                 }
 
                 LOGGER.info("[SentimentPlugin] Sentiment for {}: {} ({}%)", event.symbol(), label, (int) (probability * 100));
 
                 return event.withSentiment(finalScore);
             }
+            // isolated on Schedulers.boundedElastic() to ensure the parallel threads stay open for price stream
         }).subscribeOn(Schedulers.boundedElastic()); // DL inference is CPU-heavy -> boundedElastic -> create many threads
     }
 
